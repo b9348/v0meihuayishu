@@ -4,12 +4,15 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
-import { Home, User, LogIn, LogOut, Settings, ShieldCheck } from "lucide-react"
+import { Home, User, LogIn, LogOut, Settings, ShieldCheck, Menu } from "lucide-react"
 import ThemeToggle from "./theme-toggle" // Assuming you have this component
+import { useMobile } from "@/hooks/use-mobile"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 
 export default function MainHeader() {
   const { isAuthenticated, currentUser, logout, isAdminAuthenticated } = useAuth()
   const router = useRouter()
+  const isMobile = useMobile()
 
   const handleLogout = () => {
     logout()
@@ -40,51 +43,125 @@ export default function MainHeader() {
           </svg>
           梅花易数AI
         </Link>
-        <nav className="flex items-center gap-4">
-          <ThemeToggle />
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/">
-              <Home className="mr-1 h-4 w-4" /> 首页
-            </Link>
-          </Button>
-          {isAuthenticated ? (
-            <>
+        {isMobile ? (
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">打开菜单</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle className="text-brand-purple-light">导航菜单</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-8 flex flex-col gap-3">
+                  <SheetClose asChild>
+                    <Button variant="ghost" className="w-full justify-start text-lg" asChild>
+                      <Link href="/">
+                        <Home className="mr-2 h-5 w-5" /> 首页
+                      </Link>
+                    </Button>
+                  </SheetClose>
+
+                  {isAuthenticated ? (
+                    <>
+                      <SheetClose asChild>
+                        <Button variant="ghost" className="w-full justify-start text-lg" asChild>
+                          <Link href="/profile">
+                            <User className="mr-2 h-5 w-5" /> 个人中心
+                          </Link>
+                        </Button>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Button variant="ghost" className="w-full justify-start text-lg" onClick={handleLogout}>
+                          <LogOut className="mr-2 h-5 w-5" /> 登出
+                        </Button>
+                      </SheetClose>
+                    </>
+                  ) : (
+                    <SheetClose asChild>
+                      <Button variant="ghost" className="w-full justify-start text-lg" asChild>
+                        <Link href="/login">
+                          <LogIn className="mr-2 h-5 w-5" /> 登录/注册
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                  )}
+
+                  <hr className="my-4 border-border" />
+
+                  {isAdminAuthenticated && (
+                    <SheetClose asChild>
+                      <Button variant="ghost" className="w-full justify-start text-lg" asChild>
+                        <Link href="/admin/dashboard">
+                          <ShieldCheck className="mr-2 h-5 w-5" /> 管理后台
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                  )}
+                  {!isAdminAuthenticated && (
+                    <SheetClose asChild>
+                      <Button variant="ghost" className="w-full justify-start text-lg" asChild>
+                        <Link href="/admin/login">
+                          <Settings className="mr-2 h-5 w-5" /> 管理员
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+        ) : (
+          <nav className="flex items-center gap-4">
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/">
+                <Home className="mr-1 h-4 w-4" /> 首页
+              </Link>
+            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/profile">
+                    <User className="mr-1 h-4 w-4" />
+                    个人中心
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="mr-1 h-4 w-4" />
+                  登出 ({currentUser?.username})
+                </Button>
+              </>
+            ) : (
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/profile">
-                  <User className="mr-1 h-4 w-4" />
-                  个人中心
+                <Link href="/login">
+                  <LogIn className="mr-1 h-4 w-4" />
+                  登录/注册
                 </Link>
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="mr-1 h-4 w-4" />
-                登出 ({currentUser?.username})
+            )}
+            {isAdminAuthenticated && (
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/admin/dashboard">
+                  <ShieldCheck className="mr-1 h-4 w-4" />
+                  管理后台
+                </Link>
               </Button>
-            </>
-          ) : (
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">
-                <LogIn className="mr-1 h-4 w-4" />
-                登录/注册
-              </Link>
-            </Button>
-          )}
-          {isAdminAuthenticated && (
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/dashboard">
-                <ShieldCheck className="mr-1 h-4 w-4" />
-                管理后台
-              </Link>
-            </Button>
-          )}
-          {!isAdminAuthenticated && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/admin/login">
-                <Settings className="mr-1 h-4 w-4" />
-                管理员
-              </Link>
-            </Button>
-          )}
-        </nav>
+            )}
+            {!isAdminAuthenticated && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/login">
+                  <Settings className="mr-1 h-4 w-4" />
+                  管理员
+                </Link>
+              </Button>
+            )}
+          </nav>
+        )}
       </div>
     </header>
   )
